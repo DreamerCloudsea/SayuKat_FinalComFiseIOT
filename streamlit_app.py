@@ -16,7 +16,7 @@ from influxdb_client import InfluxDBClient
 
 # ─── Configuración de página ──────────────────────────────────
 st.set_page_config(
-    page_title='CTRL·SEC — Sistema Seguridad IoT',
+    page_title='Monitoreo Seguridad Industrial — Sistema Seguridad IoT',
     page_icon='🔐',
     layout='wide',
     initial_sidebar_state='expanded'
@@ -29,19 +29,24 @@ st.markdown("""
 
     /* ── Variables ── */
     :root {
-        --amber:   #FFB000;
-        --amber-d: #CC8800;
-        --amber-f: #FF6B00;
-        --green:   #39FF14;
-        --green-d: #1a7a00;
-        --red:     #FF3131;
-        --red-d:   #7a0000;
-        --bg:      #050603;
-        --bg2:     #0a0c06;
-        --bg3:     #0f1209;
-        --border:  #1e2410;
-        --text:    #c8b560;
-        --text-d:  #4a4220;
+        --primary:   #B026FF;
+        --primary-d: #7B1FA2;
+        --primary-f: #D05CFF;
+    
+        --purple:    #C77DFF;
+        --purple-d:  #5A189A;
+    
+        --red:       #FF4D6D;
+        --red-d:     #7f1d2d;
+    
+        --bg:        #050308;
+        --bg2:       #0b0712;
+        --bg3:       #130b1d;
+    
+        --border:    #241335;
+    
+        --text:      #d8c8f5;
+        --text-d:    #6f5a94;
     }
 
     /* ── Scanline overlay ── */
@@ -73,12 +78,57 @@ st.markdown("""
         border-right: 1px solid var(--border);
     }
 
-    /* ── Sliders: amber track ── */
-    [data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
-        background: var(--border) !important;
+    /* ── Sliders cyberpunk ── */
+
+    [data-testid="stSlider"] {
+        padding-top: 8px;
+        padding-bottom: 12px;
     }
-    [data-testid="stSlider"] [data-baseweb="slider"] > div > div {
-        background: var(--amber) !important;
+    
+    [data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
+        height: 6px !important;
+        background: linear-gradient(
+            90deg,
+            #241335,
+            #4c1d95
+        ) !important;
+    
+        border-radius: 999px;
+    }
+    
+    /* Barra activa */
+    [data-testid="stSlider"] [role="slider"] + div {
+        background: linear-gradient(
+            90deg,
+            #9333EA,
+            #C77DFF
+        ) !important;
+    
+        height: 6px !important;
+        border-radius: 999px;
+    }
+    
+    /* Thumb */
+    [data-testid="stSlider"] [role="slider"] {
+        background: #E9D5FF !important;
+        border: 3px solid #9333EA !important;
+    
+        width: 18px !important;
+        height: 18px !important;
+    
+        box-shadow:
+            0 0 10px #9333EA,
+            0 0 20px #9333EA55 !important;
+    
+        transition: all 0.2s ease;
+    }
+    
+    /* Hover */
+    [data-testid="stSlider"] [role="slider"]:hover {
+        transform: scale(1.12);
+        box-shadow:
+            0 0 15px #C77DFF,
+            0 0 25px #9333EA !important;
     }
 
     /* ── Selectbox & Multiselect ── */
@@ -86,7 +136,7 @@ st.markdown("""
         background: #1a1500 !important;
         border: 1px solid var(--amber-d) !important;
         border-radius: 2px !important;
-        color: var(--amber) !important;
+        color: var(--primary) !important;
         font-size: 0.75rem !important;
         font-family: 'Share Tech Mono', monospace !important;
     }
@@ -99,7 +149,7 @@ st.markdown("""
     [data-testid="stMetric"] {
         background: var(--bg2);
         border: 1px solid var(--border);
-        border-top: 2px solid var(--amber-d);
+        border-top: 2px solid var(--primary-d);
         border-radius: 0px;
         padding: 16px 18px !important;
         font-family: 'Share Tech Mono', monospace;
@@ -107,7 +157,7 @@ st.markdown("""
     }
     [data-testid="stMetricValue"] {
         font-family: 'Share Tech Mono', monospace !important;
-        color: var(--amber) !important;
+        color: var(--primary) !important;
         font-size: 1.6rem !important;
         text-shadow: 0 0 12px rgba(255,176,0,0.4);
     }
@@ -136,7 +186,7 @@ st.markdown("""
     .stWarning { border-left: 3px solid var(--amber) !important; background: #1a1000 !important; }
 
     /* ── Spinner ── */
-    .stSpinner > div { border-top-color: var(--amber) !important; }
+    .stSpinner > div { border-top-color: var(--primary) !important; }
 
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 5px; }
@@ -166,11 +216,11 @@ CAMPOS_BIN  = ['movimiento', 'alarma_gas', 'ventilador']
 CAMPO_GAS   = 'gas'
 
 # ─── Matplotlib: tema terminal ────────────────────────────────
-AMBER = '#FFB000'
-GREEN = '#39FF14'
+AMBER = '#B026FF'
+GREEN = '#C77DFF'
 RED   = '#FF3131'
-BG    = '#07090a'
-BG2   = '#0a0c06'
+BG    = '#08050f'
+BG2   = '#0f0917'
 
 plt.rcParams.update({
     'figure.facecolor'  : BG2,
@@ -197,11 +247,11 @@ plt.rcParams.update({
 # ─── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("""
-        <div style="background:#020301; border-bottom:1px solid #1e2410;
+        <div style="background:linear-gradient(     180deg,     #0d0715 0%,     #09040f 100% ); border-bottom:1px solid #1e2410;
                     padding:24px 16px 20px; margin:-1rem -1rem 1rem -1rem;">
             <div style="font-family:'Share Tech Mono',monospace; color:#FFB000;
                         font-size:1.1rem; letter-spacing:0.12em;">
-                ▶ CTRL·SEC
+                ▶ Monitoreo Seguridad Industrial
             </div>
             <div style="font-family:'Share Tech Mono',monospace; color:#2a2410;
                         font-size:0.65rem; letter-spacing:0.2em; margin-top:4px;
@@ -210,10 +260,10 @@ with st.sidebar:
                 ESP32 · InfluxDB · Streamlit
             </div>
             <div style="margin-top:14px; display:flex; align-items:center; gap:8px;">
-                <div style="width:7px;height:7px;border-radius:50%;background:#39FF14;
-                            box-shadow:0 0 8px #39FF1488;animation:none;"></div>
+                <div style="width:7px;height:7px;border-radius:50%;background:#C77DFF;
+                            box-shadow:0 0 12px #C77DFF88;;animation:none;"></div>
                 <span style="font-family:'Share Tech Mono',monospace;
-                             color:#39FF14;font-size:0.7rem;letter-spacing:0.1em;">
+                             color:#C77DFF;font-size:0.7rem;letter-spacing:0.1em;">
                     SISTEMA ACTIVO
                 </span>
             </div>
@@ -242,7 +292,7 @@ with st.sidebar:
 
     st.markdown("""
         <div style="margin-top:28px; border:1px solid #1e2410; padding:14px;
-                    background:#020301;">
+                    background:linear-gradient(     180deg,     #0d0715 0%,     #09040f 100% );">
             <div style="font-family:'Share Tech Mono',monospace; font-size:0.6rem;
                         color:#2a2410; letter-spacing:0.15em; text-transform:uppercase;">
                 Refresco automático
@@ -256,7 +306,7 @@ with st.sidebar:
 
     st.markdown("""
         <div style="margin-top:16px; border:1px solid #1e2410; padding:14px;
-                    background:#020301;">
+                    background:linear-gradient(     180deg,     #0d0715 0%,     #09040f 100% );">
             <div style="font-family:'Share Tech Mono',monospace; font-size:0.6rem;
                         color:#2a2410; letter-spacing:0.15em; text-transform:uppercase;
                         margin-bottom:8px;">
@@ -285,7 +335,7 @@ st.markdown("""
                          font-weight:700; color:#FFB000;
                          text-shadow:0 0 20px rgba(255,176,0,0.3);
                          letter-spacing:0.04em;">
-                CTRL·SEC
+                Monitoreo Seguridad Industrial
             </span>
             <span style="font-family:'Share Tech Mono',monospace; font-size:0.8rem;
                          color:#3a3218; letter-spacing:0.08em;">
@@ -715,7 +765,7 @@ with col_t2:
         r_color   = RED if abs(r) > 0.5 else AMBER
         st.markdown(f"""
             <div style="margin-top:16px; border:1px solid #1e2410; padding:14px;
-                        background:#020301;">
+                        background:linear-gradient(     180deg,     #0d0715 0%,     #09040f 100% );">
                 <div style="font-family:'Share Tech Mono',monospace; font-size:0.62rem;
                             color:#2a2410; letter-spacing:0.15em; text-transform:uppercase;">
                     Correlación gas ↔ movimiento
@@ -738,7 +788,7 @@ st.markdown("""
                 font-family:'Share Tech Mono',monospace; font-size:0.65rem;
                 color:#1e2010; letter-spacing:0.15em; text-transform:uppercase;
                 display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-        <span>CTRL·SEC · SAYU &amp; KAT · 2025</span>
+        <span>Monitoreo Seguridad Industrial · SAYU &amp; KAT · 2025</span>
         <span>ESP32 + INFLUXDB + STREAMLIT</span>
         <span>SISTEMA DE SEGURIDAD Y CONTROL IOT</span>
     </div>
